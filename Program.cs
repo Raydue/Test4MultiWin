@@ -27,20 +27,43 @@ namespace Test4MultiWin
             Process process = new Process();
 
                 Console.WriteLine("Opening...");
-            process.StartInfo.UseShellExecute = false;   //是否使用作業系統shell啟動 
-            process.StartInfo.CreateNoWindow = true;   //是否在新視窗中啟動該程序的值 (不顯示程式視窗)
-            process.StartInfo.RedirectStandardInput = true;  // 接受來自呼叫程式的輸入資訊 
+            process.StartInfo.UseShellExecute = false;      //是否使用shell啟動 
+            process.StartInfo.CreateNoWindow = true;         //是否在新視窗中啟動該程式的值 (不顯示程式視窗)
+            process.StartInfo.RedirectStandardInput = true;  // 接受來自呼叫程式的輸入資訊      
             process.StartInfo.RedirectStandardOutput = true;  // 由呼叫程式獲取輸出資訊
+            process.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;       //最小化
             
-           // process.StartInfo.RedirectStandardError = true;  //重定向標準錯誤輸出
             process.StartInfo.FileName = @"C:\Users\Youngtec\source\repos\MQTTCMD\bin\Debug\MQTTCMD.exe";         
-            process.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
+           
             
             process.Start();
-            
-            process.StandardInput.WriteLine("#");
-            
-            process.StandardInput.WriteLine("end");
+            while (true)
+            {
+                Console.WriteLine("Please write down a broker you want to connect.");
+                Console.WriteLine("If done,please enter again.");
+                string b = Console.ReadLine();
+                process.StandardInput.WriteLine(b);
+                if (string.IsNullOrEmpty(b))
+                {
+                    break;
+                }
+            }
+            while (true)
+            {
+                Console.WriteLine("Please write down topics you want to subscribe.");
+                Console.WriteLine("If all done,please command 'end' to continue.");
+                string a = Console.ReadLine();
+                process.StandardInput.WriteLine(a);
+                if (a == "end")
+                {
+                    break;
+                }
+            }
+           
+           
+            //process.StandardInput.WriteLine("end");
+                   
+           
            
             StreamReader reader = process.StandardOutput;
             string data = reader.ReadLine();
