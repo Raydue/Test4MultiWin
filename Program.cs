@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using System.ComponentModel;
 using System.IO;
-
+//  目前觀察到這裡程式如果中斷了，Broker那邊不會顯示disconnection，而會繼續傳送Publish
 namespace Test4MultiWin
 {
     class Program
@@ -28,7 +28,7 @@ namespace Test4MultiWin
 
                 Console.WriteLine("Opening...");
             process.StartInfo.UseShellExecute = false;      //是否使用shell啟動 
-            process.StartInfo.CreateNoWindow = true;         //是否在新視窗中啟動該程式的值 (不顯示程式視窗)
+            process.StartInfo.CreateNoWindow = false;         //是否在新視窗中啟動該程式的值 (不顯示程式視窗)
             process.StartInfo.RedirectStandardInput = true;  // 接受來自呼叫程式的輸入資訊      
             process.StartInfo.RedirectStandardOutput = true;  // 由呼叫程式獲取輸出資訊
             process.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;       //最小化
@@ -37,35 +37,41 @@ namespace Test4MultiWin
            
             
             process.Start();
-            while (true)
+            do
             {
                 Console.WriteLine("Please write down a broker you want to connect.");
                 Console.WriteLine("If done,please enter again.");
                 string b = Console.ReadLine();
-                process.StandardInput.WriteLine(b);
+                process.StandardInput.WriteLine(b);            //將這裡輸入的值，傳給被呼叫的程式
+                Console.WriteLine("================================================");
                 if (string.IsNullOrEmpty(b))
                 {
                     break;
                 }
-            }
-            while (true)
+        }while (true);
+            
+
+            do
             {
                 Console.WriteLine("Please write down topics you want to subscribe.");
                 Console.WriteLine("If all done,please command 'end' to continue.");
                 string a = Console.ReadLine();
-                process.StandardInput.WriteLine(a);
+                process.StandardInput.WriteLine(a);              //將這裡輸入的值，傳給被呼叫的程式
+                Console.WriteLine("=================================================");
                 if (a == "end")
                 {
                     break;
                 }
             }
+            while (true);
+          
            
            
-            //process.StandardInput.WriteLine("end");
+           
                    
            
            
-            StreamReader reader = process.StandardOutput;
+            StreamReader reader = process.StandardOutput;           //資料流方面的功能，可以把被呼叫程式產生出來的資料，撈回來
             string data = reader.ReadLine();
             while (!reader.EndOfStream)
             {
@@ -75,8 +81,14 @@ namespace Test4MultiWin
                 }
                 data = reader.ReadLine();
             }
-            process.WaitForExit();
-            process.Close();
+         
+            Console.CancelKeyPress += (object sender, ConsoleCancelEventArgs e) =>
+            {
+                var cancel = e.SpecialKey == ConsoleSpecialKey.ControlC;
+                process.StandardInput.WriteLine(cancel);
+                process.Close();
+            };
+            //process.Close();                                    //目前仍無法正常關閉，常常會有Process占用資源的問題。
             
         }
     }
